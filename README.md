@@ -1,5 +1,14 @@
 # Storyteq Code Challenge
 
+Opted to use vue create as instructed, the run commands are listed below
+
+## 
+Tech stack
+- Vue 3 - Composition / SFC
+- Pinia - https://pinia.esm.dev/
+- Typescript
+- Jest - Testing Library https://testing-library.com/
+
 ## Project setup
 ```
 yarn install
@@ -18,11 +27,6 @@ yarn build
 ### Run your unit tests
 ```
 yarn test:unit
-```
-
-### Run your end-to-end tests
-```
-yarn test:e2e
 ```
 
 ### Lints and fixes files
