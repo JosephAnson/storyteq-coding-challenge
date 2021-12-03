@@ -1,4 +1,4 @@
-# hello-world
+# Storyteq Code Challenge
 
 ## Project setup
 ```
