@@ -1,20 +1,18 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
 import { useFocusTrap } from "@vueuse/integrations/useFocusTrap";
-import VAutoComplete from "./components/AutoComplete/AutoComplete.vue";
 import { useCityStore } from "./store/CityStore";
 import { useBookStore } from "./store/BookStore";
-import { storeToRefs } from "pinia";
+
+import VAutoComplete from "./components/AutoComplete/AutoComplete.vue";
 
 const form = ref();
 const { activate } = useFocusTrap(form, { immediate: true });
 
 const cityStore = useCityStore();
-const { cities } = storeToRefs(cityStore);
+const bookStore = useBookStore();
 
 const bookSearch = ref("");
-const bookStore = useBookStore();
-const { books } = storeToRefs(bookStore);
 
 onMounted(() => {
   activate();
@@ -29,7 +27,7 @@ onMounted(() => {
         <v-auto-complete
           id="city"
           label="Cities"
-          :data="cities"
+          :data="cityStore.cities"
         ></v-auto-complete>
 
         <!-- V-Model -->
@@ -39,7 +37,7 @@ onMounted(() => {
           v-model:search="bookSearch"
           label="Books"
           search-key="title"
-          :data="books"
+          :data="bookStore.books"
         >
           <template #result="result">
             <dt class="text-sm font-medium text-gray-500">
