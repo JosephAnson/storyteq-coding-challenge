@@ -2,8 +2,10 @@
 
 Opted to use vue create as instructed, the run commands are listed below
 
-## 
-Tech stack
+## Live demo
+https://storyteq-coding-challenge.herokuapp.com/
+
+## Tech stack
 - Vue 3 - Composition / SFC
 - Pinia - https://pinia.esm.dev/
 - Typescript
