@@ -1,6 +1,6 @@
 <template>
   <div
-    class="auto-complete__item bg-gray-50 px-4 py-2 sm:grid sm:grid-cols-3 mb-1"
+    class="auto-complete__item group cursor-pointer select-none relative py-2 pl-3 pr-9 hover:text-white hover:bg-indigo-600"
   >
     <slot></slot>
   </div>

@@ -1,5 +1,9 @@
 import AutoComplete from "./AutoComplete.vue";
-import { fireEvent, render } from "@testing-library/vue";
+import {
+  fireEvent,
+  render,
+  SelectorMatcherOptions,
+} from "@testing-library/vue";
 import type { RenderResult } from "@testing-library/vue";
 
 export interface AutoCompleteFactoryProps {
@@ -37,44 +41,50 @@ function autoCompleteFactory(props?: AutoCompleteFactoryProps): RenderResult {
   });
 }
 
+async function setAndFocusAutoCompleteInput(
+  getByLabelText: <W>(
+    text:
+      | ((content: string, element: Element | null) => boolean)
+      | RegExp
+      | number
+      | string,
+    options?: SelectorMatcherOptions,
+    waitForElementOptions?: W
+  ) => HTMLElement,
+  text: string
+) {
+  const input = getByLabelText(label);
+  await fireEvent.update(input, text);
+  await input.focus();
+}
+
 describe("Auto Complete Component", () => {
-  let component: RenderResult;
-
-  beforeEach(() => {
-    component = autoCompleteFactory({});
-  });
-
   test("displays less than 3 characters message by default", async () => {
-    const { findByText } = component;
-    await findByText("Type at least 3 characters");
+    const { getByText } = autoCompleteFactory({});
+    await getByText("Type at least 3 characters");
   });
 
   test("do nothing if less than 3 characters", async () => {
-    const { findByText, getByLabelText } = component;
-    const titleInput = getByLabelText(label);
+    const { getByText, getByLabelText } = autoCompleteFactory({});
 
-    await fireEvent.update(titleInput, "Au");
-    await findByText("Type at least 3 characters");
+    await setAndFocusAutoCompleteInput(getByLabelText, "Au");
+    await getByText("Type at least 3 characters");
   });
 
   test("displays results expecting single result", async () => {
-    const { getByText, getByLabelText } = component;
+    const { getByText, getByLabelText } = autoCompleteFactory({});
 
-    const input = getByLabelText(label);
-
-    await fireEvent.update(input, "Audi");
+    await setAndFocusAutoCompleteInput(getByLabelText, "Audi");
     getByText("Audi");
 
-    await fireEvent.update(input, "BMW");
+    await setAndFocusAutoCompleteInput(getByLabelText, "BMW");
     getByText("BMW");
   });
 
   test("displays results expecting multiple results", async () => {
-    const { getByText, getByLabelText } = component;
+    const { getByText, getByLabelText } = autoCompleteFactory({});
 
-    const input = getByLabelText(label);
-
-    await fireEvent.update(input, "Audi");
+    await setAndFocusAutoCompleteInput(getByLabelText, "Audi");
     getByText("Audi");
     getByText("Audi Fancy");
     getByText("Caudid");
@@ -83,11 +93,10 @@ describe("Auto Complete Component", () => {
 
   test("displays results with different data structure", async () => {
     const slot = `<template #result="result">
-         {{ result.item.first_name }}
-        </template>`;
+                   {{ result.item.first_name }}
+                  </template>`;
 
-    const { getByText } = autoCompleteFactory({
-      search: "Leonard",
+    const { getByText, getByLabelText } = await autoCompleteFactory({
       searchKey: "first_name",
       resultSlot: slot,
       data: [
@@ -164,15 +173,14 @@ describe("Auto Complete Component", () => {
       ],
     });
 
+    await setAndFocusAutoCompleteInput(getByLabelText, "Leonard");
     getByText("Leonard");
   });
 
   test("displays no results message", async () => {
-    const { getByText, getByLabelText } = component;
+    const { getByText, getByLabelText } = autoCompleteFactory({});
 
-    const titleInput = getByLabelText(label);
-
-    await fireEvent.update(titleInput, "This is not an item");
+    await setAndFocusAutoCompleteInput(getByLabelText, "This is not an item");
     getByText("No results");
   });
 });

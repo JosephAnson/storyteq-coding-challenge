@@ -1,6 +1,7 @@
 <template>
-  <div class="auto-complete">
+  <div class="auto-complete" ref="autocomplete">
     <v-field
+      class="relative"
       :label-for="id"
       :label="label"
       :warning="!searchLength ? 'Type at least 3 characters' : ''"
@@ -10,38 +11,46 @@
         v-model:value="newSearch"
         :name="id"
         data-test="autocomplete-input"
+        @focus="open = true"
       />
-    </v-field>
-    <div v-if="searchLength" class="autocomplete__items">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Results
-      </label>
-      <ul v-if="!filteredResultsEmpty" class="rounded overflow-hidden">
-        <li v-for="(item, index) in filteredData" :key="item">
-          <v-auto-complete-item>
+
+      <div
+        v-if="searchLength && open"
+        class="autocomplete__items absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+      >
+        <div v-if="!filteredResultsEmpty">
+          <v-auto-complete-item
+            v-for="(item, index) in filteredData"
+            :key="item"
+            @click="select(item)"
+          >
             <slot name="result" :item="item" :index="index">
-              <dt class="text-sm font-medium text-gray-500">
+              <dt
+                class="text-sm font-medium text-gray-500 group-hover:text-white"
+              >
                 {{ item }}
               </dt>
             </slot>
           </v-auto-complete-item>
-        </li>
-      </ul>
-      <v-auto-complete-item v-else class="text-sm font-medium text-gray-500">
-        No results
-      </v-auto-complete-item>
-    </div>
+        </div>
+        <v-auto-complete-item v-else class="text-sm font-medium text-gray-500">
+          No results
+        </v-auto-complete-item>
+      </div>
+    </v-field>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType } from "vue";
-import { useVModel } from "@vueuse/core";
+import { computed, defineComponent, PropType, ref } from "vue";
+import { onClickOutside, templateRef, useVModel } from "@vueuse/core";
 import get from "lodash.get";
 
 import Input from "../Input/Input.vue";
 import Field from "../Field/Field.vue";
 import AutoCompleteItem from "./AutoCompleteItem.vue";
+
+type DataItem = Record<string, string | number> | string;
 
 export default defineComponent({
   components: {
@@ -55,25 +64,31 @@ export default defineComponent({
     search: { type: String, default: "" },
     searchKey: { type: String, default: "" },
     data: {
-      type: Array as PropType<(Record<string, string | number> | string)[]>,
+      type: Array as PropType<DataItem[]>,
       required: true,
     },
   },
-  emits: ["update:search"],
+  emits: ["update:search", "select"],
   setup(props, { emit }) {
+    const autocomplete = templateRef("autocomplete");
+
     const newSearch = useVModel(props, "search", emit, { passive: true });
+
+    const open = ref(false);
+
+    onClickOutside(autocomplete, () => (open.value = false));
 
     const searchLength = computed(() => newSearch.value.length >= 3);
     const filteredResultsEmpty = computed(() => filteredData.value.length <= 0);
     const filteredData = computed(() => {
       const lowerCaseSearch = newSearch.value.toLowerCase();
 
+      if (!lowerCaseSearch) {
+        return [];
+      }
+
       return props.data
         .filter((item) => {
-          if (!lowerCaseSearch) {
-            return false;
-          }
-
           if (typeof item === "string") {
             return item.toLowerCase().indexOf(lowerCaseSearch) >= 0;
           } else {
@@ -83,11 +98,25 @@ export default defineComponent({
         })
         .sort();
     });
+
+    function select(item: DataItem) {
+      if (typeof item === "string") {
+        newSearch.value = item;
+      } else {
+        newSearch.value = get(item, props.searchKey).toString();
+      }
+
+      emit("select", item);
+      open.value = false;
+    }
+
     return {
       newSearch,
       searchLength,
+      open,
       filteredResultsEmpty,
       filteredData,
+      select,
     };
   },
 });

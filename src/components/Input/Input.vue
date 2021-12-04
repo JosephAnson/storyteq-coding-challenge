@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineProps, withDefaults } from "vue";
+import { defineProps, defineEmits, withDefaults } from "vue";
 import { useVModel } from "@vueuse/core";
 
 interface InputProps {
@@ -14,6 +14,8 @@ const props = withDefaults(defineProps<InputProps>(), {
   value: "",
 });
 
+defineEmits(["update:value", "focus", "blur"]);
+
 const newValue = useVModel(props, "value");
 </script>
 
@@ -27,6 +29,8 @@ const newValue = useVModel(props, "value");
       class="input focus:ring-indigo-500 focus:border-indigo-500 block w-full px-4 sm:text-sm border-gray-300 rounded-md"
       placeholder="Start Searching..."
       autocomplete="off"
+      @focus="$emit('focus')"
+      @blur="$emit('blur')"
     />
   </div>
 </template>
